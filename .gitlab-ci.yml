@@ -1,0 +1,4 @@
+stages:
+  - RunMake
+  - RunTest
+  - RunPackage
