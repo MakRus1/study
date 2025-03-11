@@ -6,6 +6,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Clean
+        run: make -C src clean
       - name: Make
         run: make -C src
   test:
@@ -14,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Clean
+        run: make -C src clean
       - name: Test
         run: make -C src test && usr/bin/factorial_test
   deb:
