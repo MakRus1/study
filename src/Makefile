@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-c -Wall
 SOURCES=main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=../output/factorial
+EXECUTABLE=bin/factorial
 
 all: $(SOURCES) $(EXECUTABLE)
 
