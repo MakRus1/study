@@ -1,9 +1,0 @@
-Package: factorial
-Version: 1.0
-Section: uncrown
-Priority: optional
-Architecture: amd64
-Essential: no
-Installed-Size: 16
-Maintainer: MakRus1
-Description: factorial solver
