@@ -6,9 +6,9 @@ using namespace std;
 
 int main ()
 {
-	int n;
-	cout << "input number: ";
-	assert (cin >> n);
+	int n = 12;
+	//cout << "input number: ";
+	//assert (cin >> n);
 	cout << factorial(n) << endl;
 	return 0;
 }
