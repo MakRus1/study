@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minikube-factorial
+  namespace: minikube-factorial
+  labels:
+    app: minikube-factorial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minikube-factorial
+  template:
+    metadata:
+      labels:
+        app: minikube-factorial
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: minikube-factorial
+          image: ${DOCKER_IMAGE_NAME}
+          imagePullPolicy: Never
+
