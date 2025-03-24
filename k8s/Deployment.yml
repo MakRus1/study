@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorial
+  labels:
+    app: factorial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorial
+  template:
+    metadata:
+      labels:
+        app: factorial
+    spec:
+      containers:
+        - name: factorial-container
+          image: makrus1/factorial
+          ports:
+            - containerPort: 8080

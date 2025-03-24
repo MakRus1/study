@@ -18,6 +18,5 @@ spec:
       restartPolicy: Always
       containers:
         - name: minikube-factorial
-          image: ${DOCKER_IMAGE_NAME}
+          image: minikube-factorial:0.0.1
           imagePullPolicy: Never
-
