@@ -13,12 +13,16 @@ spec:
     metadata:
       labels:
         app: factorial
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
     spec:
       containers:
         - name: factorial-container
-          image: makrus1/factorial
+          image: makrus1/factorial:latest
           ports:
             - containerPort: 8080
+            - containerPort: 9090
           readinessProbe:
             httpGet:
               path: /?number=1

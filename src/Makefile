@@ -1,6 +1,8 @@
 CC=g++
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -pthread -Ilibs
 SOURCES=factorial.h
+INCLUDE_PATHS=libs
+LIBRARIES=-L./libs -lprometheus-cpp-core -lprometheus-cpp-pull -lprometheus-cpp-push -lz
 MAIN=main.cpp $(SOURCES)
 TEST=tests/test.cpp $(SOURCES)
 OBJECTS_MAIN=$(MAIN:.cpp=.o)
@@ -13,10 +15,10 @@ all: $(MAIN) $(EXECUTABLE_MAIN)
 test: $(TEST) $(EXECUTABLE_TEST)
 
 $(EXECUTABLE_MAIN): $(OBJECTS_MAIN)
-	$(CC) $(OBJECTS_MAIN) -o $@
+	$(CC) $(OBJECTS_MAIN) -o $@ $(LIBRARIES)
 
 $(EXECUTABLE_TEST): $(OBJECTS_TEST)
-	$(CC) $(OBJECTS_TEST) -o $@
+	$(CC) $(OBJECTS_TEST) -o $@ $(LIBRARIES)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@

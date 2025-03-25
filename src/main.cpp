@@ -1,27 +1,31 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <sstream>
 #include <stdexcept>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <prometheus/exposer.h>
+#include <prometheus/counter.h>
+#include <prometheus/registry.h>
+#include <prometheus/text_serializer.h>
+//#include <prometheus/serializer.h>
+
 #include "factorial.h"
 
 using namespace std;
 
-void handle_request(int client_socket)
-{
-	char buffer[1024];
-	size_t bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
-	if (bytes_received <= 0)
-	{
-		close(client_socket);
-		return;
-	}
-	buffer[bytes_received] = '\0';
+shared_ptr<prometheus::Registry> registry = make_shared<prometheus::Registry>();
+prometheus::Family<prometheus::Counter>& total_requests = prometheus::BuildCounter()
+	.Name("factorial_requests_total")
+	.Help("Total number of requests.")
+	.Register(*registry);
 
-	string request(buffer);
+void handle_request(int client_socket, const string& request)
+{
 	size_t query_start = request.find("?number=");
 	if (query_start == string::npos)
 	{
@@ -65,6 +69,48 @@ void handle_request(int client_socket)
 	close(client_socket);
 }
 
+void handle_metrics_request(int client_socket)
+{
+	//auto serializer = prometheus::Serializer::Create();
+	prometheus::TextSerializer serializer;
+	stringstream stream;
+	serializer.Serialize(stream, registry->Collect());
+	string metrics = stream.str();
+
+	string http_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + to_string(metrics.length()) + "\r\n\r\n" + metrics;
+	send(client_socket, http_response.c_str(), http_response.length(), 0);
+	close(client_socket);
+}
+
+void* handle_connection(void* arg)
+{
+	int client_socket = *(int*)arg;
+	char buffer[1024];
+	size_t bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+	if (bytes_received <= 0)
+	{
+		close(client_socket);
+		return nullptr;
+	}
+	buffer[bytes_received] = '\0';
+	string request(buffer);
+
+	if (request.find("GET /metrics") == 0)
+	{
+		handle_metrics_request(client_socket);
+	} else if (request.find("GET /?number=") == 0)
+	{
+		handle_request(client_socket, request);
+	} else
+	{
+		string response = "HTTP/1.1 404 Not Found\r\n";
+		send(client_socket, response.c_str(), response.length(), 0);
+		close(client_socket);
+	}
+
+	return nullptr;
+}
+
 int main ()
 {
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -95,6 +141,10 @@ int main ()
 
 	cout << "Server was started on port 8080" << endl;
 
+	prometheus::Exposer exposer{"0.0.0.0:9090"};
+	exposer.RegisterCollectable(registry);
+	cout << "Prometheus Exposer running on port 9090" << endl;
+
 	while (true)
 	{
 		sockaddr_in client_address;
@@ -106,7 +156,16 @@ int main ()
 			continue;
 		}
 
-		handle_request(client_socket);
+		pthread_t thread;
+		int* client_socket_ptr = new int(client_socket);
+		if (pthread_create(&thread, nullptr, handle_connection, client_socket_ptr) != 0)
+		{
+			cerr << "Cannot create a thread" << endl;
+			close(client_socket);
+			delete client_socket_ptr;
+			continue;
+		}
+		pthread_detach(thread);
 	}
 
 	close(server_socket);
