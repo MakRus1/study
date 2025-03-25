@@ -19,3 +19,15 @@ spec:
           image: makrus1/factorial
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /?number=1
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /?number=1
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
