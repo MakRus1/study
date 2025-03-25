@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 MAINTAINER MakRus1
 RUN apt-get update && apt-get install -y dpkg
-COPY package.deb /home/package.deb
+COPY ..deb /home/..deb
 WORKDIR /home
 RUN dpkg -i ..deb
 
